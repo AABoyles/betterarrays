@@ -1,0 +1,16 @@
+{
+  "name": "betterarrays",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "demo": "node_modules/http-server/bin/http-server"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "jest": "^23.6.0"
+  }
+}
