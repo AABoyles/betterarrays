@@ -1,6 +1,6 @@
 {
   "name": "betterarrays",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "node_modules/terser/bin/uglifyjs --compress --mangle -- index.js > dist/betterarrays.min.js",
     "demo": "node_modules/http-server/bin/http-server"
   },
-  "author": "",
+  "author": "Tony Boyles <aaboyles@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "benchmark": "^2.1.4",
