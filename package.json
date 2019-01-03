@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "benchmark": "nodejs benchmark/test.js",
     "build": "node_modules/terser/bin/uglifyjs --compress --mangle -- index.js > dist/betterarrays.min.js",
     "demo": "node_modules/http-server/bin/http-server"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "benchmark": "^2.1.4",
     "http-server": "^0.11.1",
     "jest": "^23.6.0",
     "terser": "^3.14.0"
