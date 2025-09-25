@@ -1,16 +1,18 @@
 (function(){
   "use strict";
 
-  Array.prototype.first = function(){
+  var BetterArrays = {};
+
+  BetterArrays.first = function(){
     return this[0];
   };
 
-  Array.prototype.initial = function(n){
+  BetterArrays.initial = function(n){
     if(!n) n = 1;
     return this.slice(0, this.length-n);
   };
 
-  Array.prototype.last = function(){
+  BetterArrays.last = function(){
     return this[this.length - 1];
   };
 
@@ -19,11 +21,11 @@
     return this.slice(index);
   };
 
-  Array.prototype.rest = rest;
-  Array.prototype.tail = rest;
-  Array.prototype.drop = rest;
+  BetterArrays.rest = rest;
+  BetterArrays.tail = rest;
+  BetterArrays.drop = rest;
 
-  Array.prototype.compact = function(){
+  BetterArrays.compact = function(){
     var output = [];
     var n = this.length;
     for(var i = 0; i < n; i++){
@@ -33,20 +35,24 @@
     return output;
   };
 
-  Array.prototype.flatten = function(shallow){
+  BetterArrays.flatten = function(shallow){
     //implementation based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
     if(shallow){
       return this.reduce(function(acc, val){ return acc.concat(val); }, []);
     }
-    return this.reduce(function(acc, val){ return Array.isArray(val) ? acc.concat(val.flatten(true)) : acc.concat(val); }, []);
+    // Note: In a scenario where BetterArrays.flatten is called on an array that contains other arrays,
+    // those inner arrays won't have .flatten() if we only call it as BetterArrays.flatten.call(innerArray, true).
+    // This will be addressed when deciding how to call these functions (e.g., by attaching them to Array.prototype again,
+    // or by ensuring all array operations go through BetterArrays). For now, the function logic is preserved.
+    return this.reduce(function(acc, val){ return Array.isArray(val) ? acc.concat(BetterArrays.flatten.call(val, true)) : acc.concat(val); }, []);
   };
 
-  Array.prototype.clone = function(deep){
+  BetterArrays.clone = function(deep){
     if(deep) return JSON.parse(JSON.stringify(this));
     return this.slice();
   };
 
-  Array.prototype.without = function(){
+  BetterArrays.without = function(){
     var output = [];
     var values;
     if(arguments.length === 1 & Array.isArray(arguments[0])){
@@ -64,39 +70,42 @@
     return output;
   };
 
-  Array.prototype.union = function(that){
-    return this.concat(that).uniq();
+  BetterArrays.union = function(that){
+    // Relies on .uniq being available on the result of this.concat(that)
+    // This will need to be BetterArrays.uniq.call(this.concat(that)) if .uniq is not on Array.prototype
+    var concatenated = this.concat(that);
+    return BetterArrays.uniq.call(concatenated);
   };
 
-  Array.prototype.intersection = function(that){
+  BetterArrays.intersection = function(that){
     var output = [];
     var n = this.length;
     for(var i = 0; i < n; i++){
       var el = this[i];
-      if(that.indexOf(el) > -1) output.push(el);
+      if(that.indexOf(el) > -1) output.push(el); // .indexOf is fine as it's a native Array method
     }
     return output;
   };
 
-  Array.prototype.difference = function(that){
+  BetterArrays.difference = function(that){
     var output = [];
     var n = this.length;
     for(var i = 0; i < n; i++){
       var el = this[i];
-      if(that.indexOf(el) == -1) output.push(el);
+      if(that.indexOf(el) == -1) output.push(el); // .indexOf is fine
     }
     return output;
   };
 
-  Array.prototype.get = function(n){
+  BetterArrays.get = function(n){
     return this[n];
   }
 
-  var uniq = function(isSorted, iteratee){
+  var uniq = function(isSorted, iteratee){ // This is the uniq implementation
     var output = [];
     if(!iteratee) iteratee = function(a, b){ return a != b; }
     if(isSorted){
-      output.push(this[0]);
+      if (this.length > 0) output.push(this[0]); // Ensure 'this' is not empty before accessing this[0]
       var n = this.length;
       for(var i = 1; i < n; i++){
         if(iteratee(this[i], this[i-1])) output.push(this[i]);
@@ -116,10 +125,23 @@
     }
     return output;
   };
-  Array.prototype.uniq = uniq;
-  Array.prototype.unique = uniq;
+  BetterArrays.uniq = uniq;
+  BetterArrays.unique = uniq;
 
-  Array.prototype.contains = Array.prototype.includes;
+  // For 'contains', it should reference the 'includes' method, which might be a polyfill.
+  // If 'includes' is polyfilled on Array.prototype, this will work.
+  // If 'Array.prototype.includes' is not guaranteed (e.g. very old env), this would need to be BetterArrays.includes
+  BetterArrays.contains = function() {
+    return Array.prototype.includes.apply(this, arguments);
+  };
+
+  BetterArrays.attachToPrototype = function() {
+    for (var key in this) {
+      if (this.hasOwnProperty(key) && key !== 'attachToPrototype') {
+        Array.prototype[key] = this[key];
+      }
+    }
+  };
 
   //# Polyfills:
 
@@ -261,5 +283,10 @@
         return false;
       }
     });
+  }
+
+  // Expose BetterArrays globally
+  if (typeof window !== 'undefined') {
+    window.BetterArrays = BetterArrays;
   }
 })();
